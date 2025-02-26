@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>kya e</h1>
+    <iframe src="https://www.youtube.com/watch?v=nFgsBxw-zWQ&list=RDMMnFgsBxw-zWQ&start_radio=1" width="560" height="315" allowfullscreen sandbox="allow-scripts"></iframe>
+    <canvas id="myCanvas" width="200" height="200"></canvas>
+    <script>
+      var canvas = document.getElementById('myCanvas');
+      var ctx = canvas.getContext('2d');
+      ctx.beginPath();
+      ctx.arc(100, 100, 50, 0, 2 * Math.PI); // Draw a circle
+      ctx.stroke(); // Outline the circle
+    </script>
+    <canvas id="myCanvas" width="200" height="100"></canvas>
+    <script>
+      var canvas = document.getElementById('myCanvas');
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = 'green';
+      ctx.fillRect(10, 10, 150, 75);
+    </script>
+    
+    
+</body>
+</html>
