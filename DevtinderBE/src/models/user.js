@@ -60,4 +60,16 @@ const userschema = new mongoose.Schema({
 
 } ,{timestamps:true});
 
+// mangoose shema methodes 
+//helper methodes
+//to offload 
+// use normal function here af dont work here due to this 
+
+userSchema.methods.getJWT =  async function(){
+  const user =this
+  const token = await jwt.sign({ _id: user._id }, "deva@7894" ,{expiresIn :"1d"})
+}  
+
+//do same for validate Password bcrypt wala
+
 module.exports = mongoose.model("user", userschema);

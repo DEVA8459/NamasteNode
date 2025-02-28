@@ -1,22 +1,76 @@
 const express = require("express");
 
 const connectDB = require("./config/database");
+const bcrypt = require("bcrypt");
 
 const app = express();
-
+const { userAuth } = require("./middlewares/auth");
 const User = require("./models/user");
+const { validateSignupData } = require("./utils/validations");
+const cookieParser = require("cookie-Parser");
+const jwt = require("jsonwebtoken");
 
 app.use(express.json());
+app.use(cookieParser());
 
 //signup api
 app.post("/signup", async (req, res) => {
   // creating a new instance of a user model
-  const user = new User(req.body);
+
   try {
+    //validating the data
+    validateSignupData(req);
+
+    //encrypting the password
+    //using npm i bcrypt
+    const { firstName, lastName, emailId, password } = req.body;
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: passwordHash,
+    });
     await user.save();
     res.send("user added  successfully");
   } catch (err) {
-    res.status(400).send("error saving user " + err.massage);
+    res.status(400).send("error saving user " + err.message);
+  }
+});
+
+//login api
+
+app.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
+
+    const user = await User.findOne({ emailId: emailId });
+    if (!user) {
+      throw new Error("invalid credentials");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      throw new Error("invalid credentials");
+    } else {
+      const token = await user.getJWT()
+      res.cookie("token", token);
+      res.send("login successfull");
+    }
+  } catch (err) {
+    res.status(400).send("error saving user " + err.message);
+  }
+});
+
+app.get("/profile", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    res.send(user);
+  } catch (err) {
+    res.status(400).send("error fetching user " + err.message);
   }
 });
 
@@ -79,23 +133,17 @@ app.delete("/user", async (req, res) => {
 
 //updateuser
 app.patch("/user/userId", async (req, res) => {
-  const userId = req.params?.userId
+  const userId = req.params?.userId;
   const data = req.body;
 
-  const AllOWED_UPDATES = [
-    "photUrl",
-    "about",
-    "gender",
-    "age",
-    "skills"
-  ];
+  const AllOWED_UPDATES = ["photUrl", "about", "gender", "age", "skills"];
 
   const isUpdateAllowed = Object.keys(data).every((k) =>
     AllOWED_UPDATES.includes(k)
   );
 
-  if(!isUpdateAllowed){
-    throw new Error("update not allowed")
+  if (!isUpdateAllowed) {
+    throw new Error("update not allowed");
   }
 
   try {
@@ -105,7 +153,7 @@ app.patch("/user/userId", async (req, res) => {
     });
     res.send(users);
   } catch (err) {
-    res.status(400).send("Upadate Failed" + err.massage);
+    res.status(400).send("Upadate Failed" + err.message);
   }
 });
 
