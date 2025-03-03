@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 var validator = require('validator'); 
+const jwt = require("jsonwebtoken");
 
 const userschema = new mongoose.Schema({
   firstName: {
@@ -60,14 +61,18 @@ const userschema = new mongoose.Schema({
 
 } ,{timestamps:true});
 
+
+
 // mangoose shema methodes 
 //helper methodes
 //to offload 
 // use normal function here af dont work here due to this 
 
-userSchema.methods.getJWT =  async function(){
+userschema.methods.getJWT =  async function(){
   const user =this
   const token = await jwt.sign({ _id: user._id }, "deva@7894" ,{expiresIn :"1d"})
+
+  return token
 }  
 
 //do same for validate Password bcrypt wala
