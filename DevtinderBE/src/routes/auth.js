@@ -49,7 +49,7 @@ authRouter.post("/login", async (req, res) => {
       } else {
         const token = await user.getJWT()
         res.cookie("token", token);
-        res.send("login successfull");
+        res.send(user);
       }
     } catch (err) {
       res.status(400).send("error saving user " + err.message);
