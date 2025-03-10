@@ -20,7 +20,8 @@ app.use("/", userRouter);
 connectDB()
   .then(() => {
     console.log("Database connection established...");
-    app.listen(3000, () => {
+    const HOST = "0.0.0.0"; // Allows access from any network device
+    app.listen(3000, HOST ,() => {
       console.log("Server is running on port 3000");
     });
   })

@@ -30,6 +30,41 @@ userRouter.get("/user/requests/received", userAuth, async (req, res) => {
   }
 });
 
+userRouter.get(
+  "/user/connection/ignore&Rejected",
+  userAuth,
+  async (req, res) => {
+    try {
+      const loggedInUser = req.user;
+
+      const allowedStatus = ["ignore", "rejected"];
+
+      const connectionRequest = await ConnectionRequest.find({
+        $or: [
+          { toUserId: loggedInUser._id, status:allowedStatus },
+          { fromUserId: loggedInUser._id, status:allowedStatus },
+        ],
+      })
+        .populate("fromUserId", "firstName lastName photoUrl about")
+        .populate("toUserId", "firstName lastName photoUrl about");
+
+      const data = connectionRequest.map((row) => ({
+        status: row.status,
+        user:
+          row.fromUserId._id.toString() === loggedInUser._id.toString()
+            ? row.toUserId
+            : row.fromUserId,
+      }));
+
+      res.json({
+        message: "Connection fetch Success",
+        data,
+      });
+    } catch (error) {
+      req.status(400).json({ message: error.message });
+    }
+  }
+);
 userRouter.get("/user/connection", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
@@ -40,8 +75,8 @@ userRouter.get("/user/connection", userAuth, async (req, res) => {
         { fromUserId: loggedInUser._id, status: "accepted" },
       ],
     })
-      .populate("fromUserId", "firstName lastName photoUrl about")
-      .populate("toUserId", "firstName lastName photoUrl about");
+      .populate("fromUserId", "firstName lastName photoUrl about age gender city skills movies education hobby")
+      .populate("toUserId", "firstName lastName photoUrl about age gender city skills movies education hobby");
 
     const data = connectionRequest.map((row) => {
       if (row.fromUserId._id.toString() === loggedInUser._id.toString()) {
@@ -55,7 +90,7 @@ userRouter.get("/user/connection", userAuth, async (req, res) => {
       data,
     });
   } catch (error) {
-    req.statusCode(400).json({message : error.message});
+    req.statusCode(400).json({ message: error.message });
   }
 });
 
@@ -95,8 +130,27 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 });
+userRouter.delete("/user/connection/:id", userAuth, async (req, res) => {
+  try {
+    const loggedInUser = req.user;
+    const connectionId = req.params.id;
 
+    const connection = await ConnectionRequest.findOneAndDelete({
+      $or: [
+        { toUserId: loggedInUser._id, fromUserId: connectionId },
+        { fromUserId: loggedInUser._id, toUserId: connectionId },
+      ],
+    });
 
+    if (!connection) {
+      return res.status(404).json({ message: "Connection not found" });
+    }
+
+    res.json({ message: "Connection deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 
 module.exports = userRouter;
